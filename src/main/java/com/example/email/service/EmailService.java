@@ -1,5 +1,6 @@
 package com.example.email.service;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +9,10 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+
+import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
@@ -32,13 +36,15 @@ public class EmailService {
     public void prepareAndSendEmail() throws MessagingException {
         String htmlTemplate="templates/emailTemplate";
         String mailTo="abc@gmail.com";
-        initializeTemplateEngine();
 
-        context.setVariable("sender","Thymleaf Email");
-        context.setVariable("mailTo",mailTo);
+        TemplateEngine templateEngine = initializeTemplateEngine();
+        Context context = new Context(Locale.US);
 
-        String htmlBody=TemplateEngine.process(htmlTemplate,context);
-        sendEmail(mailTo,"Thymeleaf Email Demo",htmlBody);
+        context.setVariable("sender", "Thymleaf Email");
+        context.setVariable("mailTo", mailTo);
+
+        String htmlBody = templateEngine.process(htmlTemplate, context);
+        sendEmail(mailTo, "Thymeleaf Email Demo", htmlBody);
     }
     private  void sendEmail(String mailTo, String subject, String mailBody) throws MessagingException {
         MimeMessage message=emailSender.createMimeMessage();
@@ -52,15 +58,15 @@ public class EmailService {
 
     }
 
-    private static void initializeTemplateEngine(){
+    private static TemplateEngine initializeTemplateEngine(){
         ClassLoaderTemplateResolver resolver=new ClassLoaderTemplateResolver();
         resolver.setTemplateMode("HTML5");
         resolver.setSuffix(".html");
         resolver.setCharacterEncoding("UTF-8");
-        templateEngine=new TemplateEngine();
+        TemplateEngine templateEngine=new SpringTemplateEngine();
         templateEngine.setTemplateResolver(resolver);
-        context=new Context(Locale.US);
+        Context context=new Context(Locale.US);
 
-
+        return templateEngine;
     }
 }
